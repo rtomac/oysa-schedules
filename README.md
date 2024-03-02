@@ -36,3 +36,8 @@ make pull
 ```
 make open
 ```
+
+# Troubleshooting
+
+If you have trouble getting the add-on menu to load:
+https://stackoverflow.com/questions/58359417/you-do-not-have-permission-to-call-urlfetchapp-fetch

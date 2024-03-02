@@ -1,7 +1,9 @@
-// Import ical.js
-eval(UrlFetchApp.fetch('https://cdnjs.cloudflare.com/ajax/libs/ical.js/1.5.0/ical.min.js').getContentText());
-
 const Calendar = function() {
+  // Import URI.js
+  // eval(UrlFetchApp.fetch('https://cdnjs.cloudflare.com/ajax/libs/URI.js/1.19.11/URI.min.js').getContentText());
+  // Import ical.js
+  eval(UrlFetchApp.fetch('https://cdnjs.cloudflare.com/ajax/libs/ical.js/1.5.0/ical.min.js').getContentText());
+
   eventTitleHomeSplits = [ 'vs', 'vs.' ];
   eventTitleSplits = eventTitleHomeSplits.concat([ '@', 'at' ]);
 

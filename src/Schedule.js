@@ -1,10 +1,7 @@
-// Import URI.js
-eval(UrlFetchApp.fetch('https://cdnjs.cloudflare.com/ajax/libs/URI.js/1.19.11/URI.min.js').getContentText());
-
-// Import fuse.js
-eval(UrlFetchApp.fetch('https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js').getContentText());
-
 const Schedule = function() {
+  // Import fuse.js
+  eval(UrlFetchApp.fetch('https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js').getContentText());
+  
   const dateCellPrefix = "Brackets -";
   const fuzzyMatchThreshold = .25;
   const locationAliases = {
