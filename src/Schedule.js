@@ -25,7 +25,7 @@ const Schedule = function() {
         .children('td')
         .map((_, tdElement) => $(tdElement).text().trim())
         .get();
-      
+
       rows.not(rows.first()).each((_, rowElement) => {
         let game = toHashTable(
             headers,
@@ -43,6 +43,19 @@ const Schedule = function() {
         game['Opponent'] = isHomeTeam ? game['Away Team'] : game['Home Team'];
 
         game['Time'] = cleanTime(game['Time']);
+
+        let score = game['Score'];
+        if (score && Array.isArray(score)) {
+          let [homeScore, awayScore] = score;
+          if (homeScore.length > 0 && awayScore.length > 0) {
+            let teamScore = isHomeTeam ? homeScore : awayScore,
+              opponentScore = isHomeTeam ? awayScore : homeScore;
+            game['TeamScore'] = teamScore;
+            game['OpponentScore'] = opponentScore;
+            game['Result'] = teamScore > opponentScore ? "W" : (teamScore < opponentScore ? "L" : "D");
+            game['ResultSummary'] = `${game['Result']} ${teamScore}-${opponentScore}`;
+          }
+        }
 
         game.findOnCalendar = function(gameEvents) { return findOnCalendar(game, gameEvents); }
 
@@ -211,7 +224,15 @@ const Schedule = function() {
   function toHashTable(names, values) {
     let index = {};
     values.forEach((value, i) => {
-      if (names[i]) index[names[i]] = value;
+      if (i < names.length) {
+        let name = names[i];
+        if (name in index) { // already in index, two columns with same name, make values an array and add multiple vals
+          let current = index[name];
+          if (!Array.isArray(current)) index[name] = current = [ current ];
+          current.push(value);
+        }
+        else index[name] = value;
+      }
     });
     return index;
   }

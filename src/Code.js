@@ -1,7 +1,7 @@
 const teamsRangeA1 = "A3:C12";
-const scheduleRangeA1 = "A16:H";
-const timeStampA1 = "H14";
-const schedulesHeadersA1 = "A15:H15";
+const scheduleRangeA1 = "A16:I";
+const timeStampA1 = "I14";
+const schedulesHeadersA1 = "A15:G15";
 const combinedSchedulesSubhdr = "Combined Schedule";
 
 function onOpen() {
@@ -52,16 +52,17 @@ function writeSchedules(sheet) {
   let rowsToCombine = cell.getRow() - scheduleRange.getRow() - 1;
   if (rowsToCombine > 0) {
     // Calculate range with schedule data
+    const scheduleHeadersRange = sheet.getRange(schedulesHeadersA1);
     const schedulesDataRange = sheet.getRange(
       scheduleRange.getRow(),
       scheduleRange.getColumn(),
       cell.getRow() - scheduleRange.getRow() - 1,
-      scheduleRange.getWidth());
+      scheduleHeadersRange.getWidth());
 
     // Write header for combined schedule
     cell.setValue(combinedSchedulesSubhdr);
     cell = increment(cell);
-    sheet.getRange(schedulesHeadersA1).copyTo(cell, { contentsOnly: true });
+    scheduleHeadersRange.copyTo(cell, { contentsOnly: true });
     cell = increment(cell);
 
     // Write combined schedule formula
@@ -93,7 +94,7 @@ function writeSchedule(teamName, scheduleUrl, calendarUrl, cell) {
       }
     }
 
-    return [ game['Team'], game['Date'], game['Time'], game['Opponent'], game['Venue'], game['Field'], game['Home or Away'], isOnCalendar ];
+    return [ game['Team'], game['Date'], game['Time'], game['Opponent'], game['Venue'], game['Field'], game['Home or Away'], isOnCalendar, game['ResultSummary'] ];
   });
   writeToCells(cell, values, notes);
 
