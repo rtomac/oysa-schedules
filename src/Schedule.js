@@ -1,13 +1,5 @@
 const Schedule = function() {
-  // Import fuse.js
-  eval(UrlFetchApp.fetch('https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js').getContentText());
-  
   const dateCellPrefix = "Brackets -";
-  const fuzzyMatchThreshold = .25;
-  const locationAliases = {
-    "clackamas hs": [ "clackamas high school" ],
-    "nelson sports complex": [ "adrienne c. nelson high school" ]
-  };
 
   function getSchedule(teamName, scheduleUrl) {
     let $ = getPage(scheduleUrl);
@@ -63,7 +55,7 @@ const Schedule = function() {
       });
     });
     
-    Logger.log(games);
+    //Logger.log(games);
     return games;
   }
 
@@ -121,7 +113,7 @@ const Schedule = function() {
       notes.push(...infos.map(info => `info: ${info}`));
       return notes.join('\n\n');
     }
-    if (hasNotes) Logger.log(notesToString());
+    //if (hasNotes) Logger.log(notesToString());
 
     return {
       isOnCalendar: found ? (complete ? "Yes" : "Incomplete") : "No",
@@ -139,7 +131,7 @@ const Schedule = function() {
   function matchesCalendarEvent(game, gameEvent) {
     if (gameEvent.date != game['Date']) return false;
     if (gameEvent.time != game['Time']) return false;
-    if (!valueIsMatch(gameEvent.team, game['Team'])) return false;
+    //if (!isMatch(gameEvent.team, game['Team'])) return false;
     return true;
   }
 
@@ -148,10 +140,10 @@ const Schedule = function() {
 
     if ((game['Home or Away'] == "Home") != gameEvent.isHome) {
       complete = false;
-      errors.push(`Home or away appears incorrect: schedule says ${game['Home or Away']}, event title is "${gameEvent.title}"`);
+      errors.push(`Home or away appears incorrect: schedule says ${game['Home or Away']}, event summary is "${gameEvent.summary}"`);
     };
 
-    if (!valueIsMatch(game['Opponent'], gameEvent.opponent)) {
+    if (!isMatch(game['Opponent'], gameEvent.opponent)) {
       complete = false;
       errors.push(`Opponent appears incorrect: schedule says "${game['Opponent']}", calendar has "${gameEvent.opponent}"`);
     };
@@ -174,47 +166,13 @@ const Schedule = function() {
   }
 
   function locationIsMatch(venue, eventLocation, eventDescription) {
-    if (valueIsMatch(venue, eventLocation)) return true;
+    if (isMatch(venue, eventLocation)) return true;
     if (eventDescriptionContains(eventDescription, venue)) return true;
-
-    let aliases = locationAliases[venue.toLowerCase().trim()];
-    if (aliases) {
-      for (var i = 0; i < aliases.length; i++) {
-        if (valueIsMatch(aliases[i], eventLocation)) return true;
-        if (eventDescriptionContains(eventDescription, aliases[i])) return true;
-      }
-    }
-
     return false;
   }
 
-  function valueIsMatch(a, b) {
-    a = (a || '').toLowerCase().trim(),
-      b = (b || '').toLowerCase().trim();
-    if (a == b) return true;
-    if (valueIsFuzzyMatch(a, b)) return true;
-    return false;
-  }
-
-  function valueIsFuzzyMatch(a, b) {
-    a = (a || '').trim(), b = (b || '').trim();
-    if (a.length && b.length) {
-      let match;
-      match = fuseMatch(a, b);
-      if (match && match.score >= fuzzyMatchThreshold) return true;
-      match = fuseMatch(b, a);
-      if (match && match.score >= fuzzyMatchThreshold) return true;
-    }
-    return false;
-  }
-
-  function fuseMatch(first, second) {
-    let results = new Fuse([ first ], { includeScore: true }).search(second);
-    if (results.length) {
-      Logger.log(results[0]);
-      return results[0];
-    }
-    return null;
+  function isMatch(a, b) {
+    return FuzzyMatcher.isMatch(a, b);
   }
 
   function getPage(uri) {

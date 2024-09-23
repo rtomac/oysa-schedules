@@ -1,8 +1,8 @@
 const teamsRangeA1 = "A3:C12";
-const scheduleRangeA1 = "A16:I";
+const scheduleRangeA1 = "A17:I";
 const timeStampA1 = "I14";
-const schedulesHeadersA1 = "A15:G15";
-const combinedSchedulesSubhdr = "Combined Schedule";
+const schedulesHeadersA1 = "A15:G16";
+const combinedSchedulesSubhdr = "Combined";
 
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
@@ -21,7 +21,7 @@ function test() {
 }
 
 function nightly() {
-  writeSchedules("Winter/Spring 2024");
+  writeSchedules("Fall 2024");
 }
 
 function writeSchedules(sheet) {
@@ -42,7 +42,7 @@ function writeSchedules(sheet) {
   // Write schedules for each team
   let values;
   let cell = scheduleRange;
-  teamRows.filter(teamRow => teamRow[0].length > 0)
+  teamRows.filter(teamRow => teamRow[0].length > 0 && teamRow[1].length > 0)
     .forEach(teamRow => {
       values = writeSchedule(teamRow[0], teamRow[1], teamRow[2], cell);
       if (values.length > 0)
@@ -60,10 +60,9 @@ function writeSchedules(sheet) {
       scheduleHeadersRange.getWidth());
 
     // Write header for combined schedule
+    scheduleHeadersRange.copyTo(cell);
     cell.setValue(combinedSchedulesSubhdr);
-    cell = increment(cell);
-    scheduleHeadersRange.copyTo(cell, { contentsOnly: true });
-    cell = increment(cell);
+    cell = increment(cell, scheduleHeadersRange.getHeight());
 
     // Write combined schedule formula
     cell.setFormula(`=sort(arrayformula(${schedulesDataRange.getA1Notation()}), 2, true, 3, true)`);
@@ -80,7 +79,7 @@ function writeSchedule(teamName, scheduleUrl, calendarUrl, cell) {
 
   let gameEvents;
   if (calendarUrl) {
-    gameEvents = Calendar.getGamesFromCalendar(calendarUrl);
+    gameEvents = Calendar.getGamesFromCalendarForTeam(calendarUrl, teamName);
   }
 
   let notes = [];
