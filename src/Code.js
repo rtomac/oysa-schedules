@@ -22,7 +22,7 @@ function test() {
 }
 
 function nightly() {
-  writeSchedules("Fall 2024");
+  writeSchedules("Winter/Spring 2025");
 }
 
 function writeSchedules(sheet) {
