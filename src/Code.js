@@ -39,6 +39,7 @@ function writeSchedules(sheet) {
     .clearNote()
     .setBackground(null)
     .setFontWeight(null)
+    .setFontStyle('normal')
     .setHorizontalAlignment('left');
 
   // Write schedules for each team
