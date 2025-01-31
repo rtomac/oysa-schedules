@@ -1,8 +1,9 @@
-const teamsRangeA1 = "A3:C12";
-const scheduleRangeA1 = "A17:I";
-const timeStampA1 = "I14";
-const schedulesHeadersA1 = "A15:G16";
-const combinedSchedulesSubhdr = "Combined";
+const teamsSectionStartA1 = "A1";
+const teamsRangeColsA1 = "A:D";
+const schedulesSectionText = "Schedules";
+const schedulesRangeColsA1 = "A:I";
+const combinedSchedulesSubheadText = "Combined";
+const combinedSchedulesRangeColsA1 = "A:G";
 
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
@@ -29,11 +30,12 @@ function writeSchedules(sheet) {
     sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheet);
   }
 
-  let teamRows = sheet.getRange(teamsRangeA1).getValues();
+  const { teamsRange, schedulesRange, combinedSchedulesHeaderRange, timeStampCell } = discoverRanges(sheet);
+  let teamRows = teamsRange.getValues();
 
   // Clear existing schedules
-  let scheduleRange = sheet.getRange(scheduleRangeA1);
-  scheduleRange.clearContent()
+  // Note: can't clearFormat() directly bc that will clear conditional formats
+  schedulesRange.clearContent()
     .clearNote()
     .setBackground(null)
     .setFontWeight(null)
@@ -41,7 +43,7 @@ function writeSchedules(sheet) {
 
   // Write schedules for each team
   let values;
-  let cell = scheduleRange;
+  let cell = schedulesRange;
   teamRows.filter(teamRow => teamRow[0].length > 0 && teamRow[1].length > 0)
     .forEach(teamRow => {
       values = writeSchedule(teamRow[0], teamRow[1], teamRow[2], cell);
@@ -49,20 +51,19 @@ function writeSchedules(sheet) {
         cell = increment(cell, values.length + 1);
     });
   
-  let rowsToCombine = cell.getRow() - scheduleRange.getRow() - 1;
+  let rowsToCombine = cell.getRow() - schedulesRange.getRow() - 1;
   if (rowsToCombine > 0) {
     // Calculate range with schedule data
-    const scheduleHeadersRange = sheet.getRange(schedulesHeadersA1);
     const schedulesDataRange = sheet.getRange(
-      scheduleRange.getRow(),
-      scheduleRange.getColumn(),
-      cell.getRow() - scheduleRange.getRow() - 1,
-      scheduleHeadersRange.getWidth());
+      schedulesRange.getRow(),
+      schedulesRange.getColumn(),
+      cell.getRow() - schedulesRange.getRow(),
+      combinedSchedulesHeaderRange.getWidth());
 
     // Write header for combined schedule
-    scheduleHeadersRange.copyTo(cell);
-    cell.setValue(combinedSchedulesSubhdr);
-    cell = increment(cell, scheduleHeadersRange.getHeight());
+    combinedSchedulesHeaderRange.copyTo(cell);
+    cell.setValue(combinedSchedulesSubheadText);
+    cell = increment(cell, combinedSchedulesHeaderRange.getHeight());
 
     // Write combined schedule formula
     cell.setFormula(`=sort(arrayformula(${schedulesDataRange.getA1Notation()}), 2, true, 3, true)`);
@@ -70,8 +71,29 @@ function writeSchedules(sheet) {
 
   // Write last refreshed timestamp
   const timestamp = new Date();
-  sheet.getRange(timeStampA1)
+  timeStampCell
     .setValue(`Last refreshed ${timestamp.toLocaleDateString("en-US")} ${timestamp.toLocaleTimeString("en-US", { hour: 'numeric', minute: 'numeric' })}`);
+}
+
+function discoverRanges(sheet) {
+  const teamsSectionStart = sheet.getRange(teamsSectionStartA1);
+  const schedulesSectionStart = sheet.getRange("A1:A").createTextFinder(schedulesSectionText).findNext();
+  if (!schedulesSectionStart)
+    throw new Error(`Could not find schedule section start cell containing text ${schedulesSectionText}`)
+
+  const teamsRange = sheet.getRange(
+    makeRangeA1(teamsRangeColsA1, teamsSectionStart.getRow()+2, schedulesSectionStart.getRow()-1));
+  const schedulesHeaderRange = sheet.getRange(
+    makeRangeOfSizeA1(schedulesRangeColsA1, schedulesSectionStart.getRow()+1, 2));
+  const combinedSchedulesHeaderRange = sheet.getRange(
+    makeRangeOfSizeA1(combinedSchedulesRangeColsA1, schedulesHeaderRange.getRow(), schedulesHeaderRange.getNumRows()));
+  const schedulesRange = sheet.getRange(
+    makeRangeA1(schedulesRangeColsA1, schedulesSectionStart.getRow()+3));
+  const timeStampCell = sheet.getRange(`I${schedulesSectionStart.getRow()}`);
+
+  const ranges = { teamsRange, schedulesHeaderRange, combinedSchedulesHeaderRange, schedulesRange, timeStampCell, };
+  console.log("Using", Object.keys(ranges).map(k => `${k} = ${ranges[k].getA1Notation()}`).join(', '));
+  return ranges;
 }
 
 function writeSchedule(teamName, scheduleUrl, calendarUrl, cell) {
@@ -115,6 +137,16 @@ function writeToCells(cell, values, notes) {
       cell.offset(row, col, 1, 1).setNote(text);
     });
   }
+}
+
+function makeRangeA1(colsA1, fromRow, toRow) {
+  const [fromCol, toCol] = colsA1.split(':');
+  return `${fromCol}${fromRow}:${toCol || ''}${toRow || ''}`;
+}
+
+function makeRangeOfSizeA1(colsA1, fromRow, numRows) {
+  const toRow = fromRow + numRows - 1;
+  return makeRangeA1(colsA1, fromRow, toRow);
 }
 
 function increment(cell, rows) {
