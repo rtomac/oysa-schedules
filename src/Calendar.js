@@ -16,21 +16,27 @@ const Calendar = function() {
 
     const vevents = vcalendar.getAllSubcomponents('vevent');
     vevents.forEach(vevent => {
-      const title = vevent.getFirstPropertyValue('summary');
-      const desc = vevent.getFirstPropertyValue('description');
+      const event = new ICAL.Event(vevent);
+      const title = event.summary;
       let parsed = parseGameFromEventSummary(title, teamName);  // First assume summary in title
       if (!parsed.isGame) {
         // Otherwise, summary may be in first line of description
-        parsed = parseGameFromEventSummary(desc.split("\n")[0], teamName)
+        parsed = parseGameFromEventSummary(event.description.split("\n")[0], teamName)
       }
       if (parsed.isGame) {
-        const start = vevent.getFirstPropertyValue('dtstart').toJSDate()
+        let start;
+        try { start = event.startDate.toJSDate(); }
+        catch {
+          console.error("Could not parse start date, probably a TBD or all-day event, skipping: " + vevent.getFirstProperty('dtstart').toICALString())
+          return;
+        }
+        
         gameEvents.push({
-          eventID: vevent.getFirstPropertyValue('uid'),
+          eventID: event.uid,
           title: title,
           start: start,
-          location: vevent.getFirstPropertyValue('location'),
-          description: desc,
+          location: event.location,
+          description: event.description,
           summary: parsed.summary,
           team: parsed.team,
           date: start.toLocaleDateString("en-US"),
