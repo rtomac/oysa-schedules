@@ -40,12 +40,21 @@ const Schedule = function() {
         if (score && Array.isArray(score)) {
           let [homeScore, awayScore] = score;
           if (homeScore.length > 0 && awayScore.length > 0) {
-            let teamScore = Number(isHomeTeam ? homeScore : awayScore),
-              opponentScore = Number(isHomeTeam ? awayScore : homeScore);
-            game['TeamScore'] = teamScore;
-            game['OpponentScore'] = opponentScore;
-            game['Result'] = teamScore > opponentScore ? "W" : (teamScore < opponentScore ? "L" : "D");
-            game['ResultSummary'] = `${game['Result']} ${teamScore}-${opponentScore}`;
+            const [teamScoreString, teamScoreValue] = parseScore(isHomeTeam ? homeScore : awayScore);
+            const [opponentScoreString, opponentScoreValue] = parseScore(isHomeTeam ? awayScore : homeScore);
+
+            game['TeamScore'] = teamScoreString;
+            game['OpponentScore'] = opponentScoreString;
+
+            const hasScoreValues = !isNaN(teamScoreValue) && !isNaN(opponentScoreValue);
+            if (hasScoreValues) {
+              game['Result'] = teamScoreValue > opponentScoreValue ? "W" : (teamScoreValue < opponentScoreValue ? "L" : "D");
+              game['ResultSummary'] = `${game['Result']} ${teamScoreString}-${opponentScoreString}`;
+            }
+            else {
+              game['Result'] = "?";
+              game['ResultSummary'] = `[${teamScoreString}] - [${opponentScoreString}]`;
+            }
           }
         }
 
@@ -90,6 +99,16 @@ const Schedule = function() {
       return new Date(parsed).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' });
 
     return time;
+  }
+
+  function parseScore(score) {
+    score = score.trim();
+    if (score.includes("-") && score.toLowerCase().endsWith("pk")) {
+      const regulation = score.split('-')[0].trim();
+      const pks = score.split('-')[1].trim().slice(0, -2).trim();
+      return [`${regulation}(${pks}PK)`, Number(regulation) + (Number(pks)*.01)];
+    }
+    return [score, Number(score)];
   }
 
   function findOnCalendar(game, gameEvents) {
