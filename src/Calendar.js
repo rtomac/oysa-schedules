@@ -60,8 +60,18 @@ const Calendar = function() {
         let team = teamLeft = summary.substring(0, loc).trim();
         let opponent = teamRight = summary.substring(loc + split.length + 2).trim();
         let isHome = eventSummaryHomeSplits.includes(split);
-
         let bestMatch = FuzzyMatcher.bestMatch([team, opponent], teamName);
+
+        // Debugging calendar fuzzy matching
+        const teamNamesToDebug = [];
+        teamNamesToDebug.forEach(teamNameToFind => {
+          if (team.toLowerCase().includes(teamNameToFind.toLowerCase()) || opponent.toLowerCase().includes(teamNameToFind.toLowerCase())) {
+            leftMatch = FuzzyMatcher.isMatchScored(teamName, teamLeft);
+            rightMatch = FuzzyMatcher.isMatchScored(teamName, teamRight);
+            console.log(`team='${teamName}', left='${teamLeft}', right='${teamRight}', match='${bestMatch}', leftScore=${leftMatch[1]}, rightScore=${rightMatch[1]}`)
+          }
+        });
+
         if (bestMatch) {
           if (bestMatch == teamRight) {
             team = teamRight;
