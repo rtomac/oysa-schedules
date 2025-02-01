@@ -40,8 +40,8 @@ const Schedule = function() {
         if (score && Array.isArray(score)) {
           let [homeScore, awayScore] = score;
           if (homeScore.length > 0 && awayScore.length > 0) {
-            let teamScore = isHomeTeam ? homeScore : awayScore,
-              opponentScore = isHomeTeam ? awayScore : homeScore;
+            let teamScore = Number(isHomeTeam ? homeScore : awayScore),
+              opponentScore = Number(isHomeTeam ? awayScore : homeScore);
             game['TeamScore'] = teamScore;
             game['OpponentScore'] = opponentScore;
             game['Result'] = teamScore > opponentScore ? "W" : (teamScore < opponentScore ? "L" : "D");
