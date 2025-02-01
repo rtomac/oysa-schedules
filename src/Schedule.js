@@ -1,7 +1,7 @@
 const Schedule = function() {
   const dateCellPrefix = "Brackets -";
 
-  function getSchedule(teamName, scheduleUrl) {
+  function getSchedule(scheduleUrl, teamName) {
     let $ = getPage(scheduleUrl);
 
     let games = [];

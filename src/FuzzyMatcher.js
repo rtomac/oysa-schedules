@@ -9,13 +9,16 @@ const FuzzyMatcher = function() {
     return outcome;
   }
 
-  function bestMatch(options, term, scoreThreshold = defaultScoreThreshold) {
+  function bestMatch(options, term, enforceThreshold = false, scoreThreshold = defaultScoreThreshold) {
     if (!Array.isArray(options)) options = [options];
 
     let results = [];
     for (let i = 0; i < options.length; i++) {
       [outcome, score] = isMatchScored(options[i], term, false, scoreThreshold);
-      if (outcome) results.push([i, score]);
+      if (outcome) {
+        if (!enforceThreshold || score <= scoreThreshold)
+          results.push([i, score]);
+      }
     }
 
     if (!results.length) return null;
@@ -57,5 +60,5 @@ const FuzzyMatcher = function() {
     return null;
   }
 
-  return { isMatch, bestMatch }
+  return { isMatch, bestMatch, isMatchScored }
 }();

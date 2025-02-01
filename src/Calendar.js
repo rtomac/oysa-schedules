@@ -7,7 +7,7 @@ const Calendar = function() {
   eventSummaryHomeSplits = [ 'vs', 'vs.' ];
   eventSummarySplits = eventSummaryHomeSplits.concat([ '@', 'at' ]);
 
-  function getGamesFromCalendarForTeam(calendarUrl, teamName) {
+  function getGamesFromCalendar(calendarUrl, teamName) {
     const content = UrlFetchApp.fetch(calendarUrl).getContentText();
     //Logger.log(content);
 
@@ -80,6 +80,6 @@ const Calendar = function() {
     return { isGame: false };
   }
 
-  return { getGamesFromCalendarForTeam };
+  return { getGamesFromCalendar };
 }();
 

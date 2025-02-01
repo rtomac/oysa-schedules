@@ -4,6 +4,7 @@ const schedulesSectionText = "Schedules";
 const schedulesRangeColsA1 = "A:I";
 const combinedSchedulesSubheadText = "Combined";
 const combinedSchedulesRangeColsA1 = "A:G";
+const urlSettingsSplit = " | ";
 
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
@@ -47,7 +48,10 @@ function writeSchedules(sheet) {
   let cell = schedulesRange;
   teamRows.filter(teamRow => teamRow[0].length > 0 && teamRow[1].length > 0)
     .forEach(teamRow => {
-      values = writeSchedule(teamRow[0], teamRow[1], teamRow[2], cell);
+      const [teamName, schedule, calendar] = teamRow;
+      const [scheduleUrl, scheduleTeamName] = parseUrlSettings(schedule, teamName);
+      const [calendarUrl, calendarTeamName] = parseUrlSettings(calendar, teamName);
+      values = writeSchedule(teamName, scheduleUrl, scheduleTeamName, calendarUrl, calendarTeamName, cell);
       if (values.length > 0)
         cell = increment(cell, values.length + 1);
     });
@@ -97,12 +101,12 @@ function discoverRanges(sheet) {
   return ranges;
 }
 
-function writeSchedule(teamName, scheduleUrl, calendarUrl, cell) {
-  let games = Schedule.getSchedule(teamName, scheduleUrl);
+function writeSchedule(teamName, scheduleUrl, scheduleTeamName, calendarUrl, calendarTeamName, cell) {
+  let games = Schedule.getSchedule(scheduleUrl, scheduleTeamName);
 
   let gameEvents;
   if (calendarUrl) {
-    gameEvents = Calendar.getGamesFromCalendarForTeam(calendarUrl, teamName);
+    gameEvents = Calendar.getGamesFromCalendar(calendarUrl, calendarTeamName);
   }
 
   let notes = [];
@@ -153,4 +157,11 @@ function makeRangeOfSizeA1(colsA1, fromRow, numRows) {
 function increment(cell, rows) {
   rows = (rows || 1);
   return cell.getSheet().getRange(cell.getRow() + rows, cell.getColumn());
+}
+
+function parseUrlSettings(url, defaultTeamName) {
+  if (!url.includes(urlSettingsSplit))
+    return [url, defaultTeamName];
+  const values = url.split(urlSettingsSplit);
+  return [ values[0].trim(), values[1].trim() ];
 }
