@@ -1,5 +1,15 @@
 const Schedule = function() {
   const dateCellPrefix = "Brackets -";
+  const locationNormalizations = [
+    ["Middle School", "ms"],
+    ["High School", "hs"],
+  ];
+  const fieldNormalizations = [
+    ["Stadium", "stad"],
+    [/Turf (\d+)/gi, "Trf$1"],
+    [/Turf #(\d+)/gi, "Trf$1"],
+    [/Turf ([a-z])[a-z]*/gi, "Trf$1"],
+  ];
 
   function getSchedule(scheduleUrl, teamName) {
     let $ = getPage(scheduleUrl);
@@ -171,22 +181,40 @@ const Schedule = function() {
       warnings.push(`Location doesn't appear in calendar location or event description: schedule says "${game['Venue']}", calendar has "${gameEvent.location}" for location`);
     };
 
-    if (!eventDescriptionContains(gameEvent.description, game['Field'])) {
+    if (!fieldIsMatch(game['Field'], gameEvent.description)) {
         warnings.push(`Field # doesn't appear in event description: schedule says "${game['Field']}"`);
     };
     
     return [ complete, errors, warnings, infos ];
   }
 
-  function eventDescriptionContains(eventDesc, str) {
-    eventDesc = (eventDesc || '').toLowerCase().trim(),
-      str = (str || '').toLowerCase().trim();
-    return eventDesc.includes(str);
+  function eventDescriptionContains(eventDesc, strToFind, normalizations) {
+    if (!eventDesc || !strToFind) return false;
+
+    const clean = str => str.toLowerCase().trim();
+    const normalize = str => {
+      let normalized = str;
+      (normalizations || []).forEach(repl => {
+        normalized = normalized.replaceAll(repl[0], repl[1]);
+      });
+      // Logger.log(str);
+      // Logger.log(clean(normalized));
+      return clean(normalized);
+    };
+    
+    if (clean(eventDesc).includes(clean(strToFind))) return true;
+    if (normalizations && normalize(eventDesc).includes(normalize(strToFind))) return true;
+    return false;
   }
 
   function locationIsMatch(venue, eventLocation, eventDescription) {
     if (isMatch(venue, eventLocation)) return true;
-    if (eventDescriptionContains(eventDescription, venue)) return true;
+    if (eventDescriptionContains(eventDescription, venue, locationNormalizations)) return true;
+    return false;
+  }
+
+  function fieldIsMatch(field, eventDescription) {
+    if (eventDescriptionContains(eventDescription, field, fieldNormalizations)) return true;
     return false;
   }
 
