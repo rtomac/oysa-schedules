@@ -6,9 +6,10 @@ const Schedule = function() {
   ];
   const fieldNormalizations = [
     ["Stadium", "stad"],
-    [/Turf (\d+)/gi, "Trf$1"],
-    [/Turf #(\d+)/gi, "Trf$1"],
-    [/Turf ([a-z])[a-z]*/gi, "Trf$1"],
+    [/Turf #?([\da-z]+)/gi, "fld$1"],
+    [/Trf([\da-z]+)/gi, "fld$1"],
+    [/Field #?([\da-z]+)/gi, "fld$1"],
+    [/^Tu?rf$/gi, ""],
   ];
 
   function getSchedule(scheduleUrl, teamName) {
@@ -197,8 +198,8 @@ const Schedule = function() {
       (normalizations || []).forEach(repl => {
         normalized = normalized.replaceAll(repl[0], repl[1]);
       });
-      // Logger.log(str);
-      // Logger.log(clean(normalized));
+      Logger.log(str);
+      Logger.log(clean(normalized));
       return clean(normalized);
     };
     
