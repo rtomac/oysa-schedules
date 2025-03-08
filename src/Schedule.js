@@ -179,11 +179,11 @@ const Schedule = function() {
     };
     
     if (!locationIsMatch(game['Venue'], gameEvent.location, gameEvent.description)) {
-      warnings.push(`Location doesn't appear in calendar location or event description: schedule says "${game['Venue']}", calendar has "${gameEvent.location}" for location`);
+      errors.push(`Location doesn't appear to be in calendar location or event description: schedule says "${game['Venue']}", calendar has "${gameEvent.location}" for location`);
     };
 
     if (!fieldIsMatch(game['Field'], gameEvent.description)) {
-        warnings.push(`Field # doesn't appear in event description: schedule says "${game['Field']}"`);
+        warnings.push(`Field # doesn't appear to be in event description: schedule says "${game['Field']}"`);
     };
     
     return [ complete, errors, warnings, infos ];
